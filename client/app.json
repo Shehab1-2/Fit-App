@@ -13,8 +13,7 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.client"
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {

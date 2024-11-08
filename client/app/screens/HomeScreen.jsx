@@ -1,8 +1,8 @@
-// src/screens/HomeScreen.js
+// src/screens/HomeScreen.jsx
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
-import Header from '../components/Header';
+import HomeScreenHeader from '../components/HomeScreenHeader';
 
 // Get device width and height
 const { width, height } = Dimensions.get('window');
@@ -22,11 +22,10 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.homepage}>
-      {/* Add Header at the top */}
-      <View style={styles.headerContainer}>
-        <Header />
-      </View>
+      {/* Display Header */}
+      <HomeScreenHeader />
 
+      {/* Main Content */}
       <View style={[styles.content, fadeIn && styles.fadeIn]}>
         <Text style={styles.title}>Embark on a fitness journey tailored by AI...</Text>
         <Text style={styles.subtitle}>Optimize your fitness regimen with the power of AI...</Text>
@@ -38,7 +37,6 @@ const HomeScreen = () => {
         >
           <Text style={styles.startNowText}>Start Now</Text>
         </TouchableOpacity>
-
       </View>
     </View>
   );
@@ -50,21 +48,16 @@ const styles = StyleSheet.create({
   homepage: {
     flex: 1,
     backgroundColor: '#121212',
-    alignItems: 'center',  // Center the content horizontally
+    alignItems: 'center',
     width: width,
     height: height,
-  },
-  headerContainer: {
-    width: '100%',
-    alignItems: 'center',  // Center the header content
-    paddingTop: 60,  // Add some padding to ensure the header isn't too close to the top
   },
   content: {
     alignItems: 'center',
     opacity: 0,
     paddingHorizontal: 20,
-    marginTop: 20,
-    flex: 1,  // Allow the content to take up remaining space
+    justifyContent: 'center', // Centers content vertically
+    flex: 1, // Takes up remaining space below header
   },
   fadeIn: {
     opacity: 1,
