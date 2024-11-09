@@ -13,18 +13,17 @@ const Login = () => {
   };
 
   const handleSubmit = async () => {
-    Alert.alert("Info", "Submit button pressed");
-
     try {
-      const response = await fetch('http://localhost:5001/api/users/login', {
+      const response = await fetch('http://192.168.1.181:5001/api/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-
+  
       if (response.ok) {
         Alert.alert('Success', 'Login successful');
-        router.push('Dashboard'); // Match route name
+        localStorage.setItem('username', formData.username);
+        router.replace('/screens/Dashboard');
       } else {
         Alert.alert('Error', 'Invalid credentials');
       }
@@ -32,6 +31,8 @@ const Login = () => {
       Alert.alert('Network Error', 'Unable to reach server');
     }
   };
+  
+  
 
   return (
     <SafeAreaView style={styles.safeArea}>
