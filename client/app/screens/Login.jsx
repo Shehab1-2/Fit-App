@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const Login = () => {
   const [formData, setFormData] = useState({ username: '', password: '' });
@@ -14,16 +16,16 @@ const Login = () => {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch('http://192.168.1.181:5001/api/users/login', {
+      const response = await fetch('https://1454-68-194-117-184.ngrok-free.app/api/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-  
+      
       if (response.ok) {
         Alert.alert('Success', 'Login successful');
-        localStorage.setItem('username', formData.username);
-        router.replace('/screens/Dashboard');
+        await AsyncStorage.setItem('username', formData.username); // Use AsyncStorage here
+        router.push('/screens/Dashboard');
       } else {
         Alert.alert('Error', 'Invalid credentials');
       }
