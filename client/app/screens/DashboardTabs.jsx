@@ -1,9 +1,10 @@
-// src/screens/DashboardTabs.js
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import HomeStack from './TabScreens/HomeStack'; // Use HomeStack instead of HomeTab
 import HomeTab from './TabScreens/HomeTab';
+import SettingsScreen from './TabScreens/SettingTab/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -14,7 +15,7 @@ const PlaceholderScreen = ({ route }) => (
   </View>
 );
 
-// Floating button component
+// Floating button component (deleted)
 const FloatingButton = ({ onPress }) => (
   <TouchableOpacity style={styles.floatingButton} onPress={onPress}>
     <Ionicons name="add" size={30} color="white" />
@@ -32,7 +33,7 @@ const DashboardTabs = () => {
             if (route.name === 'Home') {
               iconName = 'home';
             } else if (route.name === 'Search') {
-              iconName = 'search';
+              iconName = 'chatbubbles';
             } else if (route.name === 'Notifications') {
               iconName = 'notifications';
             } else if (route.name === 'Settings') {
@@ -44,15 +45,16 @@ const DashboardTabs = () => {
           tabBarInactiveTintColor: '#555',
           tabBarShowLabel: false,
           headerShown: false,
-          tabBarStyle: styles.tabBar,
         })}
       >
         <Tab.Screen name="Home" component={HomeTab} />
         <Tab.Screen name="Search" component={PlaceholderScreen} />
         <Tab.Screen name="Notifications" component={PlaceholderScreen} />
-        <Tab.Screen name="Settings" component={PlaceholderScreen} />
+        <Tab.Screen name="Settings" component={SettingsScreen} />
       </Tab.Navigator>
-      <FloatingButton onPress={() => alert("Floating Button Pressed")} />
+
+      
+      
     </>
   );
 };

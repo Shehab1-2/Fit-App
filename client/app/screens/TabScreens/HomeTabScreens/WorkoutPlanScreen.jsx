@@ -4,88 +4,151 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView } from 
 const WorkoutPlanScreen = () => {
   const [chatHistory, setChatHistory] = useState([]);
   const [userInput, setUserInput] = useState('');
-  const [isReady, setIsReady] = useState(false);
-  const [workoutPlan, setWorkoutPlan] = useState(null);
+  const [isPlanReady, setIsPlanReady] = useState(false);
+  const [workoutPlan, setWorkoutPlan] = useState({
+    split: {
+      Monday: '',
+      Tuesday: '',
+      Wednesday: '',
+      Thursday: '',
+      Friday: '',
+    },
+  });
+  const [calendar, setCalendar] = useState({});
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [isChatVisible, setIsChatVisible] = useState(false);
 
-  // Function to handle user input and GPT response
-  const handleSendMessage = () => {
-    if (userInput) {
-      const newChatEntry = { sender: 'User', message: userInput };
-      const updatedChat = [...chatHistory, newChatEntry];
-      setChatHistory(updatedChat);
-      setUserInput('');
-
-      // Simulate GPT response (Replace this with actual GPT API call)
-      const gptResponse = { sender: 'GPT', message: 'Simulated GPT response based on user input.' };
-      setChatHistory([...updatedChat, gptResponse]);
-    }
+  // Generate the days for the selected month and year
+  const generateCalendarDays = (year, month) => {
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const calendarDays = Array.from({ length: daysInMonth }, (_, index) => ({
+      day: index + 1,
+      completed: false,
+    }));
+    return { days: calendarDays, firstDayOfMonth };
   };
 
-  // Function to trigger workout plan generation
-  const handleGeneratePlan = () => {
-    const generatedPlan = {
-      // Simulated workout split plan structure
-      split: {
-        Monday: ['Chest', 'Triceps'],
-        Tuesday: ['Back', 'Biceps'],
-        // Rest of the week...
-      },
-      overview: 'This is a customized plan based on your goals and fitness level.',
-    };
-    setWorkoutPlan(generatedPlan);
+  // Initialize calendar days for the selected month and year
+  const { days: daysInMonth, firstDayOfMonth } = generateCalendarDays(currentDate.getFullYear(), currentDate.getMonth());
+
+  // Update the month or year
+  const changeMonth = (direction) => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(newDate.getMonth() + direction);
+    setCurrentDate(newDate);
+  };
+
+  const changeYear = (direction) => {
+    const newDate = new Date(currentDate);
+    newDate.setFullYear(newDate.getFullYear() + direction);
+    setCurrentDate(newDate);
+  };
+
+  const toggleWorkoutLog = (day) => {
+    setCalendar((prevCalendar) => ({
+      ...prevCalendar,
+      [`${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}`]: !prevCalendar[`${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}`],
+    }));
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Chat with GPT Fitness Coach</Text>
+      <Text style={styles.title}>Workout Split & Calendar</Text>
 
-      {/* Chat Interface */}
-      <View style={styles.chatContainer}>
-        {chatHistory.map((chat, index) => (
-          <View key={index} style={[styles.chatBubble, chat.sender === 'User' ? styles.userBubble : styles.gptBubble]}>
-            <Text style={styles.chatText}>{chat.message}</Text>
+      {/* Workout Split with Edit Option */}
+      <View style={styles.splitContainer}>
+        {Object.entries(workoutPlan.split).map(([day, workout], index) => (
+          <View key={index} style={styles.splitRow}>
+            <Text style={styles.dayText}>{day}:</Text>
+            <TextInput
+              style={styles.workoutInput}
+              value={workout}
+              placeholder="Add workout"
+              placeholderTextColor="#888"
+              onChangeText={(text) =>
+                setWorkoutPlan((prevPlan) => ({
+                  ...prevPlan,
+                  split: { ...prevPlan.split, [day]: text },
+                }))
+              }
+            />
           </View>
         ))}
       </View>
 
-      {/* Input Field for Chat */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Ask the GPT coach..."
-          placeholderTextColor="#888"
-          value={userInput}
-          onChangeText={setUserInput}
-        />
-        <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
-          <Text style={styles.sendButtonText}>Send</Text>
+      {/* Month & Year Navigation */}
+      <View style={styles.navContainer}>
+        <TouchableOpacity onPress={() => changeYear(-1)}>
+          <Text style={styles.navText}>{'<<'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => changeMonth(-1)}>
+          <Text style={styles.navText}>{'<'}</Text>
+        </TouchableOpacity>
+        <Text style={styles.dateText}>
+          {currentDate.toLocaleString('default', { month: 'long' })} {currentDate.getFullYear()}
+        </Text>
+        <TouchableOpacity onPress={() => changeMonth(1)}>
+          <Text style={styles.navText}>{'>'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => changeYear(1)}>
+          <Text style={styles.navText}>{'>>'}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Generate Plan Button */}
-      {!isReady && (
-        <TouchableOpacity style={styles.readyButton} onPress={() => setIsReady(true)}>
-          <Text style={styles.readyButtonText}>Ready to Create Plan</Text>
-        </TouchableOpacity>
+      {/* Calendar to Log Completed Workouts */}
+      <View style={styles.calendarContainer}>
+        <Text style={styles.sectionTitle}>Monthly Workout Log</Text>
+        <View style={styles.calendarGrid}>
+          {[...Array(firstDayOfMonth)].map((_, index) => (
+            <View key={`empty-${index}`} style={styles.calendarDayEmpty} />
+          ))}
+          {daysInMonth.map(({ day }) => (
+            <TouchableOpacity
+              key={day}
+              style={[
+                styles.calendarDay,
+                calendar[`${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}`] && styles.completed,
+              ]}
+              onPress={() => toggleWorkoutLog(day)}
+            >
+              <Text style={styles.calendarDayText}>{day}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* Chat with GPT Agent */}
+      <TouchableOpacity style={styles.chatToggle} onPress={() => setIsChatVisible(!isChatVisible)}>
+        <Text style={styles.chatToggleText}>{isChatVisible ? 'Hide Chat' : 'Talk to GPT'}</Text>
+      </TouchableOpacity>
+      {isChatVisible && (
+        <View style={styles.chatContainer}>
+          {chatHistory.map((chat, index) => (
+            <View key={index} style={[styles.chatBubble, chat.sender === 'User' ? styles.userBubble : styles.gptBubble]}>
+              <Text style={styles.chatText}>{chat.message}</Text>
+            </View>
+          ))}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Ask about your fitness goals..."
+              placeholderTextColor="#888"
+              value={userInput}
+              onChangeText={setUserInput}
+            />
+            <TouchableOpacity style={styles.sendButton} onPress={() => setChatHistory([...chatHistory, { sender: 'User', message: userInput }])}>
+              <Text style={styles.sendButtonText}>Send</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       )}
 
-      {/* Display Generated Workout Plan */}
-      {isReady && workoutPlan ? (
-        <View style={styles.planContainer}>
-          <Text style={styles.planTitle}>Your Workout Plan</Text>
-          {Object.entries(workoutPlan.split).map(([day, exercises], index) => (
-            <Text key={index} style={styles.planText}>{day}: {exercises.join(', ')}</Text>
-          ))}
-          <TouchableOpacity style={styles.editButton}>
-            <Text style={styles.editButtonText}>Edit Plan</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        isReady && (
-          <TouchableOpacity style={styles.generateButton} onPress={handleGeneratePlan}>
-            <Text style={styles.generateButtonText}>Generate Plan</Text>
-          </TouchableOpacity>
-        )
+      {/* Generate Workout Plan Button */}
+      {!isPlanReady && (
+        <TouchableOpacity style={styles.generateButton} onPress={() => setIsPlanReady(true)}>
+          <Text style={styles.generateButtonText}>Generate Plan</Text>
+        </TouchableOpacity>
       )}
     </ScrollView>
   );
@@ -100,14 +163,95 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#FF8C00',
     textAlign: 'center',
-    marginVertical: 15,
+    marginVertical: 10,
+  },
+  splitContainer: {
+    backgroundColor: '#1E1E1E',
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  splitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 5,
+  },
+  dayText: {
+    color: '#FFFFFF',
+    width: 100,
+    fontSize: 16,
+  },
+  workoutInput: {
+    flex: 1,
+    backgroundColor: '#333',
+    color: '#FFFFFF',
+    padding: 8,
+    borderRadius: 5,
+  },
+  navContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  navText: {
+    color: '#FF8C00',
+    fontSize: 18,
+    paddingHorizontal: 10,
+  },
+  dateText: {
+    fontSize: 18,
+    color: '#FFFFFF',
+  },
+  calendarContainer: {
+    marginVertical: 10,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    color: '#FF8C00',
+    marginBottom: 8,
+  },
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  calendarDay: {
+    width: '13%',
+    aspectRatio: 1,
+    marginVertical: 3,
+    backgroundColor: '#333',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 5,
+  },
+  calendarDayEmpty: {
+    width: '13%',
+    aspectRatio: 1,
+    marginVertical: 3,
+  },
+  calendarDayText: {
+    color: '#FFFFFF',
+  },
+  completed: {
+    backgroundColor: '#4CAF50',
+  },
+  chatToggle: {
+    backgroundColor: '#FF8C00',
+    padding: 10,
+    borderRadius: 8,
+    marginVertical: 10,
+    alignItems: 'center',
+  },
+  chatToggleText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
   },
   chatContainer: {
-    maxHeight: 400,
+    maxHeight: 300,
     padding: 10,
     backgroundColor: '#1E1E1E',
     borderRadius: 8,
-    marginVertical: 10,
   },
   chatBubble: {
     padding: 8,
@@ -128,71 +272,35 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 10,
+    marginTop: 10,
   },
   input: {
     flex: 1,
-    padding: 10,
-    backgroundColor: '#1E1E1E',
+    backgroundColor: '#333',
     color: '#FFFFFF',
-    borderRadius: 8,
+    padding: 8,
+    borderRadius: 5,
     marginRight: 10,
   },
   sendButton: {
     backgroundColor: '#FF8C00',
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 5,
   },
   sendButtonText: {
     color: '#FFFFFF',
   },
-  readyButton: {
+  generateButton: {
     backgroundColor: '#4CAF50',
     padding: 15,
     borderRadius: 8,
-    marginVertical: 20,
-  },
-  readyButtonText: {
-    color: '#FFFFFF',
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  planContainer: {
-    backgroundColor: '#1E1E1E',
-    padding: 15,
-    borderRadius: 8,
-    marginVertical: 10,
-  },
-  planTitle: {
-    fontSize: 20,
-    color: '#FF8C00',
-    marginBottom: 10,
-  },
-  planText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    marginVertical: 2,
-  },
-  editButton: {
-    backgroundColor: '#FF8C00',
-    padding: 10,
-    borderRadius: 5,
     marginTop: 10,
     alignItems: 'center',
   },
-  editButtonText: {
-    color: '#FFFFFF',
-  },
-  generateButton: {
-    backgroundColor: '#FF8C00',
-    padding: 15,
-    borderRadius: 8,
-    marginTop: 10,
-  },
   generateButtonText: {
     color: '#FFFFFF',
-    textAlign: 'center',
+    fontWeight: '600',
   },
 });
 

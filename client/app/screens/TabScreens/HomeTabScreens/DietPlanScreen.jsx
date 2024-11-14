@@ -6,8 +6,46 @@ const DietPlanScreen = () => {
   const [userInput, setUserInput] = useState('');
   const [isReady, setIsReady] = useState(false);
   const [dietPlan, setDietPlan] = useState(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [calendar, setCalendar] = useState({});
+  const [isChatVisible, setIsChatVisible] = useState(false);
 
-  // Function to handle user input and GPT response
+  // Generate calendar days for selected month and year
+  const generateCalendarDays = (year, month) => {
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const calendarDays = Array.from({ length: daysInMonth }, (_, index) => ({
+      day: index + 1,
+      completed: false,
+    }));
+    return { days: calendarDays, firstDayOfMonth };
+  };
+
+  const { days: daysInMonth, firstDayOfMonth } = generateCalendarDays(
+    currentDate.getFullYear(),
+    currentDate.getMonth()
+  );
+
+  // Update month or year
+  const changeMonth = (direction) => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(newDate.getMonth() + direction);
+    setCurrentDate(newDate);
+  };
+
+  const changeYear = (direction) => {
+    const newDate = new Date(currentDate);
+    newDate.setFullYear(newDate.getFullYear() + direction);
+    setCurrentDate(newDate);
+  };
+
+  const toggleDietLog = (day) => {
+    setCalendar((prevCalendar) => ({
+      ...prevCalendar,
+      [`${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}`]: !prevCalendar[`${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}`],
+    }));
+  };
+
   const handleSendMessage = () => {
     if (userInput) {
       const newChatEntry = { sender: 'User', message: userInput };
@@ -15,21 +53,18 @@ const DietPlanScreen = () => {
       setChatHistory(updatedChat);
       setUserInput('');
 
-      // Simulate GPT response (Replace this with actual GPT API call)
       const gptResponse = { sender: 'GPT', message: 'Simulated GPT response based on user input.' };
       setChatHistory([...updatedChat, gptResponse]);
     }
   };
 
-  // Function to trigger diet plan generation
   const handleGeneratePlan = () => {
     const generatedPlan = {
-      // Simulated diet plan structure
       meals: {
         Breakfast: ['Oatmeal', 'Banana', 'Almonds'],
         Lunch: ['Grilled chicken', 'Quinoa', 'Salad'],
         Dinner: ['Salmon', 'Steamed broccoli', 'Sweet potatoes'],
-        Snacks: ['Greek yogurt', 'Mixed nuts', 'Apple']
+        Snacks: ['Greek yogurt', 'Mixed nuts', 'Apple'],
       },
       overview: 'This is a customized diet plan based on your goals and dietary preferences.',
     };
@@ -38,39 +73,9 @@ const DietPlanScreen = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Chat with GPT Nutrition Coach</Text>
+      <Text style={styles.title}>Diet Plan & Calendar</Text>
 
-      {/* Chat Interface */}
-      <View style={styles.chatContainer}>
-        {chatHistory.map((chat, index) => (
-          <View key={index} style={[styles.chatBubble, chat.sender === 'User' ? styles.userBubble : styles.gptBubble]}>
-            <Text style={styles.chatText}>{chat.message}</Text>
-          </View>
-        ))}
-      </View>
-
-      {/* Input Field for Chat */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Ask the GPT nutrition coach..."
-          placeholderTextColor="#888"
-          value={userInput}
-          onChangeText={setUserInput}
-        />
-        <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
-          <Text style={styles.sendButtonText}>Send</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Generate Plan Button */}
-      {!isReady && (
-        <TouchableOpacity style={styles.readyButton} onPress={() => setIsReady(true)}>
-          <Text style={styles.readyButtonText}>Ready to Create Plan</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Display Generated Diet Plan */}
+      {/* Diet Plan */}
       {isReady && dietPlan ? (
         <View style={styles.planContainer}>
           <Text style={styles.planTitle}>Your Diet Plan</Text>
@@ -87,6 +92,80 @@ const DietPlanScreen = () => {
             <Text style={styles.generateButtonText}>Generate Plan</Text>
           </TouchableOpacity>
         )
+      )}
+
+      {/* Month & Year Navigation */}
+      <View style={styles.navContainer}>
+        <TouchableOpacity onPress={() => changeYear(-1)}>
+          <Text style={styles.navText}>{'<<'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => changeMonth(-1)}>
+          <Text style={styles.navText}>{'<'}</Text>
+        </TouchableOpacity>
+        <Text style={styles.dateText}>
+          {currentDate.toLocaleString('default', { month: 'long' })} {currentDate.getFullYear()}
+        </Text>
+        <TouchableOpacity onPress={() => changeMonth(1)}>
+          <Text style={styles.navText}>{'>'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => changeYear(1)}>
+          <Text style={styles.navText}>{'>>'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Calendar */}
+      <View style={styles.calendarContainer}>
+        <Text style={styles.sectionTitle}>Monthly Diet Log</Text>
+        <View style={styles.calendarGrid}>
+          {[...Array(firstDayOfMonth)].map((_, index) => (
+            <View key={`empty-${index}`} style={styles.calendarDayEmpty} />
+          ))}
+          {daysInMonth.map(({ day }) => (
+            <TouchableOpacity
+              key={day}
+              style={[
+                styles.calendarDay,
+                calendar[`${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}`] && styles.completed,
+              ]}
+              onPress={() => toggleDietLog(day)}
+            >
+              <Text style={styles.calendarDayText}>{day}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* Chat with GPT */}
+      <TouchableOpacity style={styles.chatToggle} onPress={() => setIsChatVisible(!isChatVisible)}>
+        <Text style={styles.chatToggleText}>{isChatVisible ? 'Hide Chat' : 'Chat with GPT Nutrition Coach'}</Text>
+      </TouchableOpacity>
+      {isChatVisible && (
+        <View style={styles.chatContainer}>
+          {chatHistory.map((chat, index) => (
+            <View key={index} style={[styles.chatBubble, chat.sender === 'User' ? styles.userBubble : styles.gptBubble]}>
+              <Text style={styles.chatText}>{chat.message}</Text>
+            </View>
+          ))}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Ask about your diet..."
+              placeholderTextColor="#888"
+              value={userInput}
+              onChangeText={setUserInput}
+            />
+            <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
+              <Text style={styles.sendButtonText}>Send</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Generate Plan Button */}
+      {!isReady && (
+        <TouchableOpacity style={styles.readyButton} onPress={() => setIsReady(true)}>
+          <Text style={styles.readyButtonText}>Ready to Create Plan</Text>
+        </TouchableOpacity>
       )}
     </ScrollView>
   );
@@ -194,6 +273,62 @@ const styles = StyleSheet.create({
   generateButtonText: {
     color: '#FFFFFF',
     textAlign: 'center',
+  },
+  calendarContainer: {
+    marginVertical: 10,
+    padding: 10,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 8,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  calendarDay: {
+    width: '13%',
+    padding: 8,
+    marginVertical: 5,
+    backgroundColor: '#333',
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  completed: {
+    backgroundColor: '#4CAF50',
+  },
+  calendarDayText: {
+    color: '#FFFFFF',
+  },
+  navContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  navText: {
+    fontSize: 16,
+    color: '#FF8C00',
+  },
+  dateText: {
+    fontSize: 18,
+    color: '#FFFFFF',
+  },
+  chatToggle: {
+    backgroundColor: '#FF8C00',
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 10,
+    alignItems: 'center',
+  },
+  chatToggleText: {
+    color: '#FFFFFF',
+    fontSize: 16,
   },
 });
 
