@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
-import { TextInput } from 'react-native-gesture-handler';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const BarcodeScreen = () => {
   const [barcodeData, setBarcodeData] = useState('');
@@ -11,6 +11,7 @@ const BarcodeScreen = () => {
     // Placeholder data simulating a barcode scan
     const itemData = {
       name: 'Organic Oats',
+      rating: 'Good', // Could also be Moderate or Bad
       ingredients: [
         { name: 'Oats', quality: 'Good' },
         { name: 'Sugar', quality: 'Moderate' },
@@ -21,16 +22,22 @@ const BarcodeScreen = () => {
     setBarcodeData('');
   };
 
-  // Function to handle input for testing (replace this with actual scanner functionality)
   const handleBarcodeInput = (input) => {
     setBarcodeData(input);
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Ionicons name="arrow-back" size={28} color="#FFFFFF" onPress={() => alert("Go Back")} />
+        <Text style={styles.headerTitle}>Product Scanner</Text>
+      </View>
+
+      {/* Title */}
       <Text style={styles.title}>Scan or Enter Barcode</Text>
 
-      {/* Placeholder for Barcode Scanning */}
+      {/* Barcode Scanner Placeholder */}
       <View style={styles.scannerContainer}>
         <TextInput
           style={styles.barcodeInput}
@@ -48,6 +55,8 @@ const BarcodeScreen = () => {
       {scannedItem && (
         <View style={styles.resultContainer}>
           <Text style={styles.itemName}>{scannedItem.name}</Text>
+          <Text style={[styles.rating, styles[scannedItem.rating.toLowerCase()]]}>{scannedItem.rating}</Text>
+
           <Text style={styles.sectionTitle}>Ingredients Analysis:</Text>
           {scannedItem.ingredients.map((ingredient, index) => (
             <View
@@ -74,7 +83,18 @@ const BarcodeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: '#121212',
+    backgroundColor: '#1C1C1C',
+    flexGrow: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  headerTitle: {
+    fontSize: 22,
+    color: '#FFFFFF',
+    marginLeft: 10,
   },
   title: {
     fontSize: 24,
@@ -89,7 +109,7 @@ const styles = StyleSheet.create({
   barcodeInput: {
     padding: 10,
     width: '80%',
-    backgroundColor: '#1E1E1E',
+    backgroundColor: '#2C2C2C',
     color: '#FFFFFF',
     borderRadius: 8,
     textAlign: 'center',
@@ -106,7 +126,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   resultContainer: {
-    backgroundColor: '#1E1E1E',
+    backgroundColor: '#2C2C2C',
     borderRadius: 8,
     padding: 15,
     marginTop: 20,
@@ -117,6 +137,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
+  rating: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    paddingVertical: 5,
+    borderRadius: 4,
+    marginVertical: 10,
+  },
+  good: { backgroundColor: '#4CAF50', color: '#FFFFFF' },
+  moderate: { backgroundColor: '#FFC107', color: '#FFFFFF' },
+  bad: { backgroundColor: '#FF5252', color: '#FFFFFF' },
   sectionTitle: {
     fontSize: 18,
     color: '#FFFFFF',
@@ -129,15 +160,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  good: {
-    backgroundColor: '#4CAF50',
-  },
-  moderate: {
-    backgroundColor: '#FFC107',
-  },
-  bad: {
-    backgroundColor: '#FF5252',
-  },
+  good: { backgroundColor: '#4CAF50' },
+  moderate: { backgroundColor: '#FFC107' },
+  bad: { backgroundColor: '#FF5252' },
   ingredientText: {
     color: '#FFFFFF',
     fontSize: 16,

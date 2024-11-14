@@ -1,11 +1,34 @@
 // SettingsScreen.jsx
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 
-const SettingsScreen = ({ navigation }) => {
+const SettingsScreen = () => {
+  const router = useRouter(); // Using router from expo-router
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Log Out",
+      "Are you sure you want to log out?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Log Out",
+          onPress: () => {
+            router.push("/screens/HomeScreen"); // Navigate to HomeScreen after logout
+          },
+          style: "destructive"
+        }
+      ]
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
-      {/* Account Settings */}
+      {/* Account Settings Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account Settings</Text>
         <TouchableOpacity style={styles.option} onPress={() => alert('Edit Profile')}>
@@ -17,9 +40,13 @@ const SettingsScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.option} onPress={() => alert('Privacy Settings')}>
           <Text style={styles.optionText}>Privacy Settings</Text>
         </TouchableOpacity>
+        {/* Logout Option */}
+        <TouchableOpacity style={styles.option} onPress={handleLogout}>
+          <Text style={styles.optionText}>Log Out</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* App Settings */}
+      {/* App Settings Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>App Settings</Text>
         <TouchableOpacity style={styles.option} onPress={() => alert('Toggle Notifications')}>
@@ -36,7 +63,7 @@ const SettingsScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Fitness and Health Goals */}
+      {/* Fitness Goals Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Fitness Goals</Text>
         <TouchableOpacity style={styles.option} onPress={() => alert('Set Daily Goals')}>
@@ -50,7 +77,7 @@ const SettingsScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Subscription and Billing */}
+      {/* Subscription & Billing Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Subscription & Billing</Text>
         <TouchableOpacity style={styles.option} onPress={() => alert('Manage Subscription')}>
@@ -61,7 +88,7 @@ const SettingsScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Data and Security */}
+      {/* Data & Security Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Data & Security</Text>
         <TouchableOpacity style={styles.option} onPress={() => alert('Export Data')}>
@@ -75,7 +102,7 @@ const SettingsScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Support */}
+      {/* Support Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Support</Text>
         <TouchableOpacity style={styles.option} onPress={() => alert('Help Center')}>
@@ -89,7 +116,7 @@ const SettingsScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Connected Apps and Devices */}
+      {/* Connected Apps & Devices Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Connected Apps & Devices</Text>
         <TouchableOpacity style={styles.option} onPress={() => alert('Sync with Health Apps')}>

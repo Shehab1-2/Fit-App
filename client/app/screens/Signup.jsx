@@ -1,145 +1,209 @@
-// src/screens/Signup.js
+// SignupScreen.jsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { ProgressBar } from 'react-native-paper';
 
-const Signup = () => {
+const { width } = Dimensions.get('window');
+
+const SignupScreen = ({ navigation }) => {
+  const [step, setStep] = useState(1); // Track current step
   const [formData, setFormData] = useState({
     username: '',
     password: '',
     gender: '',
     height: '',
-    heightUnit: 'inches',
-    weight: '',
     fitnessGoals: '',
     currentActivityLevel: '',
+    weights: [{ weight: '', date: new Date() }],
     dietaryPreferences: '',
+    workoutPlan: [],
+    dietPlan: []
   });
-  const router = useRouter();
 
-  const handleChange = (name, value) => {
-    setFormData({ ...formData, [name]: value });
+  const handleNext = () => {
+    if (step < 5) setStep(step + 1); // Go to the next step
+    else {
+      console.log('Signup Complete:', formData);
+      navigation.navigate('HomeScreen'); // Navigate to home after signup
+    }
   };
 
-  const handleSubmit = async () => {
-    try {
-      const response = await fetch('http://localhost:5001/api/users/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+  const handleBack = () => {
+    if (step > 1) setStep(step - 1); // Go to the previous step if not on the first step
+  };
 
-      if (response.ok) {
-        Alert.alert('Success', 'Signup successful');
-        router.push('/dashboard'); // Replace with actual route
-      } else {
-        Alert.alert('Error', 'Signup failed');
-      }
-    } catch (error) {
-      Alert.alert('Network Error', 'Unable to reach server');
+  const handleInputChange = (field, value) => {
+    setFormData(prevData => ({ ...prevData, [field]: value }));
+  };
+
+  const renderStepContent = () => {
+    switch (step) {
+      case 1:
+        return (
+          <>
+            <Text style={styles.title}>Create Your Account</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Username"
+              value={formData.username}
+              onChangeText={value => handleInputChange('username', value)}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              secureTextEntry
+              value={formData.password}
+              onChangeText={value => handleInputChange('password', value)}
+            />
+          </>
+        );
+      case 2:
+        return (
+          <>
+            <Text style={styles.title}>Personal Details</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Gender"
+              value={formData.gender}
+              onChangeText={value => handleInputChange('gender', value)}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Height (cm)"
+              keyboardType="numeric"
+              value={formData.height}
+              onChangeText={value => handleInputChange('height', value)}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Fitness Goals (e.g., Lose Weight)"
+              value={formData.fitnessGoals}
+              onChangeText={value => handleInputChange('fitnessGoals', value)}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Activity Level (e.g., Moderate)"
+              value={formData.currentActivityLevel}
+              onChangeText={value => handleInputChange('currentActivityLevel', value)}
+            />
+          </>
+        );
+      case 3:
+        return (
+          <>
+            <Text style={styles.title}>Track Your Weight</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Current Weight (kg)"
+              keyboardType="numeric"
+              value={formData.weights[0].weight}
+              onChangeText={value =>
+                setFormData(prevData => ({
+                  ...prevData,
+                  weights: [{ weight: value, date: new Date() }]
+                }))
+              }
+            />
+          </>
+        );
+      case 4:
+        return (
+          <>
+            <Text style={styles.title}>Your Workout Plan</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Day (e.g., Monday)"
+              value={formData.workoutPlan.day}
+              onChangeText={day => handleInputChange('workoutPlan', { ...formData.workoutPlan, day })}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Exercises (e.g., Squats, 3 sets of 10)"
+              value={formData.workoutPlan.exercises}
+              onChangeText={exercises => handleInputChange('workoutPlan', { ...formData.workoutPlan, exercises })}
+            />
+          </>
+        );
+      case 5:
+        return (
+          <>
+            <Text style={styles.title}>Your Diet Plan</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Dietary Preferences (e.g., Vegan, Balanced)"
+              value={formData.dietaryPreferences}
+              onChangeText={value => handleInputChange('dietaryPreferences', value)}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Meals (e.g., Breakfast: Oats, Lunch: Salad)"
+              value={formData.dietPlan.meals}
+              onChangeText={meals => handleInputChange('dietPlan', { ...formData.dietPlan, meals })}
+            />
+          </>
+        );
+      default:
+        return null;
     }
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView 
-        style={styles.container} 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* Progress Bar */}
+      <ProgressBar progress={step / 5} color="#FF8C00" style={styles.progressBar} />
 
-         {/* Back Button */}
-         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>Back</Text>
-        </TouchableOpacity>
+      {renderStepContent()}
 
-
-        <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-          <Text style={styles.title}>Sign Up</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Username"
-            placeholderTextColor="#888888"
-            value={formData.username}
-            onChangeText={(text) => handleChange('username', text)}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#888888"
-            secureTextEntry
-            value={formData.password}
-            onChangeText={(text) => handleChange('password', text)}
-          />
-          {/* Add more input fields here as needed */}
-          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-            <Text style={styles.buttonText}>Sign Up</Text>
+      <View style={styles.buttonContainer}>
+        {/* Back Button (only show if not on the first step) */}
+        {step > 1 && (
+          <TouchableOpacity style={[styles.button, styles.backButton]} onPress={handleBack}>
+            <Text style={styles.buttonText}>Back</Text>
           </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        )}
+
+        {/* Next Button */}
+        <TouchableOpacity style={[styles.button, styles.nextButton]} onPress={handleNext}>
+          <Text style={styles.buttonText}>{step < 5 ? 'Next' : 'Finish'}</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#121212',
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 20,
-    backgroundColor: '#121212',
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  title: {
-    textAlign: 'center',
-    fontSize: 28, // Slightly larger font for readability
-    color: '#FFFFFF',
-    marginBottom: 30,
-    fontWeight: 'bold',
-  },
+  container: { flex: 1, padding: 20, justifyContent: 'center', backgroundColor: '#f5f5f5' },
+  progressBar: { marginVertical: 20, height: 8, borderRadius: 4 },
+  title: { fontSize: 24, marginBottom: 20, textAlign: 'center', color: '#333', fontWeight: '600' },
   input: {
-    backgroundColor: '#1E1E1E',
-    color: '#FFFFFF',
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    marginVertical: 10,
+    width: '100%',
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
     borderRadius: 8,
-    fontSize: 16, // Larger font size for readability
+    marginBottom: 20,
+    fontSize: 16,
+    color: '#333'
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20
   },
   button: {
-    backgroundColor: '#FF8C00',
-    paddingVertical: 15,
+    padding: 15,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 20,
-    shadowColor: '#000', // Shadow for button
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
+    width: '48%'
   },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
+  nextButton: {
+    backgroundColor: '#FF8C00',
   },
   backButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    backgroundColor: '#FF8C00',
-    borderRadius: 5,
-    marginBottom: 10,
+    backgroundColor: '#ddd',
   },
-  backButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-  },
+  buttonText: { color: '#FFF', fontSize: 18, fontWeight: '700' }
 });
 
-export default Signup;
+export default SignupScreen;
