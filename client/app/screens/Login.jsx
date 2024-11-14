@@ -5,36 +5,30 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
 const Login = () => {
   const [formData, setFormData] = useState({ username: '', password: '' });
   const router = useRouter();
+
+  // Hardcoded test credentials
+  const testCredentials = {
+    username: 'Test',
+    password: 'Test'
+  };
 
   const handleChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async () => {
-    try {
-      const response = await fetch('https://1454-68-194-117-184.ngrok-free.app/api/users/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      
-      if (response.ok) {
-        Alert.alert('Success', 'Login successful');
-        await AsyncStorage.setItem('username', formData.username); // Use AsyncStorage here
-        router.push('/screens/Dashboard');
-      } else {
-        Alert.alert('Error', 'Invalid credentials');
-      }
-    } catch (error) {
-      Alert.alert('Network Error', 'Unable to reach server');
+    // Check if entered credentials match the test credentials
+    if (formData.username === testCredentials.username && formData.password === testCredentials.password) {
+      Alert.alert('Success', 'Login successful');
+      await AsyncStorage.setItem('username', formData.username); // Store username
+      router.push('/screens/Dashboard'); // Navigate to Dashboard
+    } else {
+      Alert.alert('Error', 'Invalid credentials');
     }
   };
-  
-  
 
   return (
     <SafeAreaView style={styles.safeArea}>
